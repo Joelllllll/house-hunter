@@ -9,7 +9,9 @@ import json
 """This script takes a json schema of house features/properties and searches the website Domain.com
 It currently only prints the URLs to screen but I want to do more.
 
-In the command line just pass the relative file path as the first and only arugment"""
+In the command line just pass the relative file path as the first and only arugment.
+You will need to get and make sure you store your domain client id and secret as bash ENV vars
+"""
 
 LOG = logging.getLogger('house_hunter')
 
