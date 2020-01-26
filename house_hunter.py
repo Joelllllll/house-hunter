@@ -5,7 +5,10 @@ import requests
 import logging
 import queue
 import json
+"""This script takes a json schema of house features/properties and searches the website Domain.com
+It currently only prints the URLs to screen but I want to do more.
 
+In the command line just pass the relative file path as the first and only arugment"""
 LOG = logging.getLogger('house_hunter')
 
 ## Endpoints
