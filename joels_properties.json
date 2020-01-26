@@ -1,0 +1,20 @@
+{
+    "listingType": "Rent",
+    "propertyFeatures": [
+        "Heating"
+    ],
+    "listingAttributes": [
+      "HasPhotos"
+    ],
+    "propertyEstablishedType": "Any",
+    "minBedrooms": 1,
+    "minBathrooms": 1,
+    "page": 1,
+    "maxPrice": 350,
+    "locations": [
+        {
+          "state": "VIC",
+          "postCode": "3000",
+          "includeSurroundingSuburbs": false
+        }
+      ]}
