@@ -5,10 +5,12 @@ import requests
 import logging
 import queue
 import json
+
 """This script takes a json schema of house features/properties and searches the website Domain.com
 It currently only prints the URLs to screen but I want to do more.
 
 In the command line just pass the relative file path as the first and only arugment"""
+
 LOG = logging.getLogger('house_hunter')
 
 ## Endpoints
@@ -64,7 +66,6 @@ def load_house_properties():
         return json.load(open(sys.argv[1]))
     except IndexError:
         LOG.warning("Make sure to supply a house properties json file as a command line argument")
-        raise
 
 if __name__ == "__main__":
     house_properties = load_house_properties()
