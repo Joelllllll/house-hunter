@@ -14,7 +14,7 @@
     "locations": [
         {
           "state": "VIC",
-          "postCode": "3000",
+          "postCode": ["3000","3182"],
           "includeSurroundingSuburbs": false
         }
       ]}

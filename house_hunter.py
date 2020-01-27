@@ -43,13 +43,15 @@ class house_hunter:
             LOG.info('There was an error when getting your access token')
             LOG.info(f'{response.text}')
         
-    def get_listing_ids(self):
+    def get_listing_ids(self, postcodes):
         "Puts all the rental ids in a queue for get_listing_info() to consume from"
-        for page_number in range(1, MAX_PAGES+1):
-            house_properties["page"] = page_number
-            response = requests.post(RESIDENTIAL_ENDPOINT, headers = self.auth, json = house_properties)
-            for obj in response.json():
-                self.id_queue.put(obj["listing"]["id"])
+        for pc in postcodes:
+            house_properties["locations"][0]["postCode"] = pc
+            for page_number in range(1, MAX_PAGES+1):
+                house_properties["page"] = page_number
+                response = requests.post(RESIDENTIAL_ENDPOINT, headers = self.auth, json = house_properties)
+                for obj in response.json():
+                    self.id_queue.put(obj["listing"]["id"])
 
     def get_listing_info(self):
         "Grabs rental ids from the id_queue and gets the rental info"
@@ -64,16 +66,22 @@ class house_hunter:
             json = house_properties).status_code
 
 def load_house_properties():
+    """Retuns postcode list and house properties obj
+    We can only search 1 psotcode at a time as it doesn't actually take an array"""
     try:
-        return json.load(open(sys.argv[1]))
+        prop = json.load(open(sys.argv[1]))
     except IndexError:
         LOG.warning("Make sure to supply a house properties json file as a command line argument")
+    postcodes = prop["locations"][0]["postCode"]
+    prop["locations"][0]["postCode"] = postcodes[0]
+    return postcodes, prop
 
 if __name__ == "__main__":
-    house_properties = load_house_properties()
+    ## Get house properties
+    postcodes, house_properties = load_house_properties()
     test = house_hunter(os.getenv("CLIENTID"), os.getenv("CLIENTSECRET"))
     if test.test_connection() == 200:
         ## Do some multithreading here
-        test.get_listing_ids()
+        test.get_listing_ids(postcodes)
         test.get_listing_info()
 
