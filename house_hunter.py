@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-import os
-import sys
-import requests
-import logging
-import queue
 import json
+import logging
+import os
+import queue
+import requests
+import sys
 import threading
 
 """This script takes a json schema of house features/properties and searches the website Domain.com
@@ -14,7 +14,7 @@ In the command line just pass the relative file path as the first and only arugm
 You will need to get and make sure you store your domain client id and secret as bash ENV vars
 """
 
-LOG = logging.getLogger('house_hunter')
+LOG = logging.getLogger("house_hunter")
 
 ## Endpoints
 TOKEN_URL = "https://auth.domain.com.au/v1/connect/token"
@@ -39,10 +39,10 @@ class house_hunter:
             "scope":"api_listings_read",
             "Content-Type":"text/json"}) 
         try:
-            return {"Authorization":"Bearer " f'{response.json()["access_token"]}'}
+            return {"Authorization":"Bearer " f"""{response.json()["access_token"]}"""}
         except KeyError:
-            LOG.info('There was an error when getting your access token')
-            LOG.info(f'{response.text}')
+            LOG.info("There was an error when getting your access token")
+            LOG.info(f"{response.text}")
         
     def get_listing_ids(self, postcodes):
         "Puts all the rental ids in a queue for get_listing_info() to consume from"
