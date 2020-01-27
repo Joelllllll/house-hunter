@@ -5,6 +5,7 @@ import requests
 import logging
 import queue
 import json
+import threading
 
 """This script takes a json schema of house features/properties and searches the website Domain.com
 It currently only prints the URLs to screen but I want to do more.
@@ -76,12 +77,14 @@ def load_house_properties():
     prop["locations"][0]["postCode"] = postcodes[0]
     return postcodes, prop
 
+
 if __name__ == "__main__":
     ## Get house properties
     postcodes, house_properties = load_house_properties()
     test = house_hunter(os.getenv("CLIENTID"), os.getenv("CLIENTSECRET"))
     if test.test_connection() == 200:
-        ## Do some multithreading here
-        test.get_listing_ids(postcodes)
-        test.get_listing_info()
-
+        ## We can get the listing info as soon as we have 1 id so use threading here
+        ids = threading.Thread(target=test.get_listing_ids(postcodes), args=(postcodes))
+        ids.start()
+        info = threading.Thread(target=test.get_listing_info)
+        info.start()
