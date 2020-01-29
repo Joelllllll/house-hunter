@@ -10,11 +10,16 @@
     "minBedrooms": 1,
     "minBathrooms": 1,
     "page": 1,
-    "maxPrice": 350,
+    "maxPrice": 400,
     "locations": [
         {
           "state": "VIC",
-          "postCode": ["3000","3182"],
+          "postCode": "3000",
+          "includeSurroundingSuburbs": false
+        },
+        {
+          "state": "VIC",
+          "postCode": "3182",
           "includeSurroundingSuburbs": false
         }
       ]}

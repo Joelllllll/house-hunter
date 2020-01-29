@@ -45,15 +45,13 @@ class house_hunter_domain:
             LOG.info("There was an error when getting your access token")
             LOG.info(f"{response.text}")
         
-    def get_listing_ids(self, postcodes):
+    def get_listing_ids(self):
         "Puts all the rental ids in a queue for get_listing_info() to consume from"
-        for pc in postcodes:
-            house_properties["locations"][0]["postCode"] = pc
-            for page_number in range(1, MAX_PAGES+1):
-                house_properties["page"] = page_number
-                response = requests.post(RESIDENTIAL_ENDPOINT, headers = self.auth, json = house_properties)
-                for obj in response.json():
-                    self.id_queue.put(obj["listing"]["id"])
+        for page_number in range(1, MAX_PAGES+1):
+            house_properties["page"] = page_number
+            response = requests.post(RESIDENTIAL_ENDPOINT, headers = self.auth, json = house_properties)
+            for obj in response.json():
+                self.id_queue.put(obj["listing"]["id"])
 
     def get_listing_info(self):
         "Grabs rental ids from the id_queue and gets the rental info"
@@ -68,25 +66,22 @@ class house_hunter_domain:
             json = house_properties).status_code
 
 def load_house_properties():
-    """Retuns postcode list and house properties obj
-    We can only search 1 psotcode at a time as it doesn't actually take an array"""
+    """Retuns postcode list and house properties obj"""
     try:
         prop = json.load(open(sys.argv[1]))
     except IndexError:
         LOG.warning("Make sure to supply a house properties json file as a command line argument")
-    postcodes = prop["locations"][0]["postCode"]
-    prop["locations"][0]["postCode"] = postcodes[0]
-    return postcodes, prop
+    return prop
 
 
 if __name__ == "__main__":
     ## Get house properties
-    postcodes, house_properties = load_house_properties()
+    house_properties = load_house_properties()
     test = house_hunter_domain(os.getenv("CLIENTID"), os.getenv("CLIENTSECRET"))
     if test.test_connection() == 200:
         ## We can get the listing info as soon as we have 1 id so use threading here
         LOG.info(" Getting rental ids")
-        ids = threading.Thread(target=test.get_listing_ids(postcodes), args=(postcodes))
+        ids = threading.Thread(target=test.get_listing_ids())
         ids.start()
         info = threading.Thread(target=test.get_listing_info)
         info.start()
