@@ -66,7 +66,7 @@ class house_hunter_domain:
             json = house_properties).status_code
 
 def load_house_properties():
-    """Retuns postcode list and house properties obj"""
+    "Retuns the user provided house properties"
     try:
         prop = json.load(open(sys.argv[1]))
     except IndexError:
