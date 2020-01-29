@@ -15,6 +15,7 @@ You will need to get and make sure you store your domain client id and secret as
 """
 
 LOG = logging.getLogger("house_hunter")
+logging.basicConfig(level = logging.INFO)
 
 ## Endpoints
 TOKEN_URL = "https://auth.domain.com.au/v1/connect/token"
@@ -24,7 +25,7 @@ LISTINGS_ENDPOINT = "https://api.domain.com.au/v1/listings/"
 ## Maximum number of pages to paginate through
 MAX_PAGES = 10
 
-class house_hunter:
+class house_hunter_domain:
     def __init__(self, client_id, client_secret):
         self.client_id = client_id
         self.client_secret = client_secret
@@ -81,9 +82,10 @@ def load_house_properties():
 if __name__ == "__main__":
     ## Get house properties
     postcodes, house_properties = load_house_properties()
-    test = house_hunter(os.getenv("CLIENTID"), os.getenv("CLIENTSECRET"))
+    test = house_hunter_domain(os.getenv("CLIENTID"), os.getenv("CLIENTSECRET"))
     if test.test_connection() == 200:
         ## We can get the listing info as soon as we have 1 id so use threading here
+        LOG.info(" Getting rental ids")
         ids = threading.Thread(target=test.get_listing_ids(postcodes), args=(postcodes))
         ids.start()
         info = threading.Thread(target=test.get_listing_info)
