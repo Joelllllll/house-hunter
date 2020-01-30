@@ -61,9 +61,7 @@ class house_hunter_domain:
 
     def test_connection(self):
         "Returns the status code of the request"
-        return requests.post(RESIDENTIAL_ENDPOINT,
-            headers = self.auth,
-            json = house_properties).status_code
+        return requests.post(RESIDENTIAL_ENDPOINT, headers = self.auth, json = house_properties).status_code
 
 def load_house_properties():
     "Retuns the user provided house properties"
@@ -80,8 +78,10 @@ if __name__ == "__main__":
     test = house_hunter_domain(os.getenv("CLIENTID"), os.getenv("CLIENTSECRET"))
     if test.test_connection() == 200:
         ## We can get the listing info as soon as we have 1 id so use threading here
-        LOG.info(" Getting rental ids")
+        LOG.info("Getting rental ids")
         ids = threading.Thread(target=test.get_listing_ids())
         ids.start()
         info = threading.Thread(target=test.get_listing_info)
         info.start()
+    else:
+        LOG.info(f"There was a connection error: {test.test_connection()}")
