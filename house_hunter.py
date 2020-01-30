@@ -69,6 +69,7 @@ if __name__ == "__main__":
     parser.add_argument('--properties', action='store', help='The search parameters', type=str, dest='properties_fpath', required=True)
     args = parser.parse_args()
 
+##TODO: Make this into a run method ?
     ## Get house properties
     house_properties = load_house_properties()
     test = house_hunter_domain(os.getenv("CLIENTID"), os.getenv("CLIENTSECRET"))
