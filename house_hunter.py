@@ -79,3 +79,4 @@ if __name__ == "__main__":
     ids.start()
     info = threading.Thread(target=test.get_listing_info)
     info.start()
+    LOG.info("Finished retrieving listings")
