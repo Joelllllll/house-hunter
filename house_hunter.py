@@ -5,7 +5,6 @@ import logging
 import os
 import queue
 import requests
-import sys
 import threading
 
 """This script takes a json schema of house features/properties and searches the website Domain.com
