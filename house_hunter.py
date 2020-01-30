@@ -8,11 +8,7 @@ import requests
 import threading
 
 """This script takes a json schema of house features/properties and searches the website Domain.com
-It currently only prints the URLs to screen but I want to do more.
-
-In the command line just pass the relative file path as the first and only arugment.
-You will need to get and make sure you store your domain client id and secret as bash ENV vars
-"""
+It currently only prints the URLs to screen but I want to do more"""
 
 LOG = logging.getLogger("house_hunter")
 logging.basicConfig(level = logging.INFO)
@@ -59,10 +55,6 @@ class house_hunter_domain:
             response = requests.get(f"{LISTINGS_ENDPOINT}{self.id_queue.get()}", headers= self.auth)
             print(response.json()["seoUrl"])
 
-    def test_connection(self):
-        "Returns the status code of the request"
-        return requests.post(RESIDENTIAL_ENDPOINT, headers = self.auth, json = house_properties).status_code
-
 def load_house_properties():
     "Retuns the user provided house properties"
     try:
@@ -80,12 +72,9 @@ if __name__ == "__main__":
     ## Get house properties
     house_properties = load_house_properties()
     test = house_hunter_domain(os.getenv("CLIENTID"), os.getenv("CLIENTSECRET"))
-    if test.test_connection() == 200:
-        ## We can get the listing info as soon as we have 1 id so use threading here
-        LOG.info("Getting rental ids")
-        ids = threading.Thread(target=test.get_listing_ids())
-        ids.start()
-        info = threading.Thread(target=test.get_listing_info)
-        info.start()
-    else:
-        LOG.info(f"There was a connection error: {test.test_connection()}")
+    ## We can get the listing info as soon as we have 1 id so use threading here
+    LOG.info("Getting rental ids")
+    ids = threading.Thread(target=test.get_listing_ids())
+    ids.start()
+    info = threading.Thread(target=test.get_listing_info)
+    info.start()
