@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from argparse import ArgumentParser
 import json
 import logging
 import os
@@ -66,13 +67,17 @@ class house_hunter_domain:
 def load_house_properties():
     "Retuns the user provided house properties"
     try:
-        prop = json.load(open(sys.argv[1]))
+        prop = json.load(open(args.properties_fpath))
     except IndexError:
         LOG.warning("Make sure to supply a house properties json file as a command line argument")
     return prop
 
 
 if __name__ == "__main__":
+    parser = ArgumentParser(description='Takes rental search parameters and returns urls')
+    parser.add_argument('--properties', action='store', help='The search parameters', type=str, dest='properties_fpath', required=True)
+    args = parser.parse_args()
+
     ## Get house properties
     house_properties = load_house_properties()
     test = house_hunter_domain(os.getenv("CLIENTID"), os.getenv("CLIENTSECRET"))
