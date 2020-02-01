@@ -6,7 +6,6 @@ import os
 from pprint import pformat
 import queue
 import requests
-import threading
 
 
 import folium
@@ -57,8 +56,8 @@ class house_hunter_domain:
             LOG.info(f"There was an error when obtaining your access token {pformat(respsonse.text)}")
             raise e
         
-    def get_listing_ids(self):
-        "Puts all the rental ids in a queue for get_listing_info() to consume from"
+    def consume_listing_ids(self):
+        "Puts all the rental ids in a queue for consume_listing_info() to consume from"
         LOG.info(f"Searching domain for properties with the following features \n  {pformat(self.house_properties)}")
         for page_number in range(1, MAX_PAGES+1):
             self.house_properties["page"] = page_number
@@ -70,7 +69,7 @@ class house_hunter_domain:
                 LOG.error(f"There was an issue retrieving the listing ids \n {pformat(response.headers)}")
                 raise e
 
-    def get_listing_info(self):
+    def consume_listing_info(self):
         lats, lons, urls, prices = [], [], [], []
         "Grabs rental ids from the id_queue and gets the rental info"
         while not self.id_queue.empty():
@@ -99,9 +98,9 @@ def plot_rentals(lats, lons, urls):
 def run(client_id, client_secret, properties_fpath):
     test = house_hunter_domain(client_id, client_secret, properties_fpath)
     LOG.info("Attempting to obtain rental ids")
-    test.get_listing_ids()
+    test.consume_listing_ids()
     ## Grab all properties we want to plot
-    lats, lons, urls, prices = test.get_listing_info()
+    lats, lons, urls, prices = test.consume_listing_info()
     plot_rentals(lats, lons, urls)
 
 
