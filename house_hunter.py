@@ -29,6 +29,11 @@ MAX_PAGES = 10
 MAP_FILE = "index.html"
 
 class house_hunter_domain:
+    class MissingPropertiesFile(Exception): pass
+    class JSONReadError(Exception): pass
+
+
+
     def __init__(self, client_id, client_secret, properties_fpath):
         self.client_id = client_id
         self.client_secret = client_secret
@@ -38,9 +43,8 @@ class house_hunter_domain:
         ## Load the house properties json file
         try:
             self.house_properties = json.load(open(properties_fpath))
-        except IndexError as e:
-            LOG.info("Make sure to supply a house properties json file as a command line argument")
-            raise e
+        except IndexError:
+            raise self.MissingPropertiesFile("Make sure to supply a house properties json file as a command line argument")
 
     def get_auth(self):
         "Returns the Auth needed for the requests header"
@@ -52,12 +56,11 @@ class house_hunter_domain:
             "Content-Type":"text/json"}) 
         try:
             return {"Authorization":"Bearer " f"""{response.json()["access_token"]}"""}
-        except KeyError as e:
-            LOG.info(f"There was an error when obtaining your access token {pformat(respsonse.text)}")
-            raise e
+        except KeyError:
+            raise self.JSONReadError(f"There was an error when obtaining your access token {pformat(respsonse.text)}")
         
     def consume_listing_ids(self):
-        "Puts all the rental ids in a queue for consume_listing_info() to consume from"
+        "Puts all the rental ids in a queue for consume_and_create_map() to consume from"
         LOG.info(f"Searching domain for properties with the following features \n  {pformat(self.house_properties)}")
         for page_number in range(1, MAX_PAGES+1):
             self.house_properties["page"] = page_number
@@ -65,43 +68,40 @@ class house_hunter_domain:
             try:
                 for obj in response.json():
                     self.id_queue.put(obj["listing"]["id"])
-            except ValueError as e:
-                LOG.error(f"There was an issue retrieving the listing ids \n {pformat(response.headers)}")
-                raise e
+            except ValueError:
+                raise self.JSONReadError(f"There was an issue retrieving the listing ids \n {pformat(response.headers)}")
 
-    def consume_listing_info(self):
-        lats, lons, urls, prices = [], [], [], []
+    def consume_and_create_graph(self):
+        m = folium.Map([max(lats), max(lons)])
         "Grabs rental ids from the id_queue and gets the rental info"
         while not self.id_queue.empty():
             data = requests.get(f"{LISTINGS_ENDPOINT}{self.id_queue.get()}", headers= self.auth).json()
-            lat.append(data["geoLocation"]["latitude"])
-            lon.append(data["geoLocation"]["longitude"])
-            price.append(data["priceDetails"]["displayPrice"])
-            url.append(data["seoUrl"])
-        
-        LOG.info("Finished retrieving listings")
-        return lats, lons, urls, prices
+            add_to_graph(m, data["geoLocation"]["latitude"], data["geoLocation"]["longitude"], data["seoUrl"])
 
-def plot_rentals(lats, lons, urls):
-    "Plots the lat/lons on a map along with displaying domain urls"
-    m = folium.Map([max(lats), max(lons)])
-    LOG.info(f"Adding {len(urls)} set(s) of geo points to map")
-    for url, lat, lon in zip(urls, lats, lons):
-        folium.Marker([lat, lon],
-         popup=url).add_to(m)
-    m.save(MAP_FILE)
-    webbrowser.open("file://" + os.path.realpath(MAP_FILE))
-    LOG.info(f"Cleaning up file {MAP_NAME}")
-    os.remove(MAP_FILE)
+        return m
+
+
+def add_to_graph(graph, lat, lon, popup):
+    "Adds a single point to a given folium graph"
+    folium.Marker([lat, lon], popup=popup).add_to(graph)
+    graph.save(graph_FILE)
+
+def view_graph(graph):
+    webbrowser.open("file://" + os.path.realpath(graph))
+    LOG.info(f"Cleaning up file {graph}")
+    os.remove(graph)
+
+
 
 
 def run(client_id, client_secret, properties_fpath):
     test = house_hunter_domain(client_id, client_secret, properties_fpath)
     LOG.info("Attempting to obtain rental ids")
     test.consume_listing_ids()
-    ## Grab all properties we want to plot
-    lats, lons, urls, prices = test.consume_listing_info()
-    plot_rentals(lats, lons, urls)
+    ## Get the map object
+    graph = test.consume_and_create_graph()
+    if graph:
+        view_graph(graph)
 
 
 if __name__ == "__main__":
