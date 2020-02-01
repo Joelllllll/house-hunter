@@ -13,7 +13,9 @@ import folium
 import webbrowser
 
 """This script takes a json schema of house features/properties and searches the website Domain.com for properties
-and plots the geopoints on a map useing folium"""
+and plots the geopoints on a map useing folium.
+
+This requires the user to set their domain api "CLIENTID" and "CLIENTSECRET" keys as bash ENV VARS """
 
 LOG = logging.getLogger("house_hunter")
 logging.basicConfig(level = logging.INFO)
