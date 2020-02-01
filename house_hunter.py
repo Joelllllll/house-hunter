@@ -3,6 +3,7 @@ from argparse import ArgumentParser
 import json
 import logging
 import os
+from pprint import pformat
 import queue
 import requests
 import threading
@@ -51,11 +52,12 @@ class house_hunter_domain:
         try:
             return {"Authorization":"Bearer " f"""{response.json()["access_token"]}"""}
         except KeyError as e:
-            LOG.info(f"There was an error when obtaining your access token {respsonse.text}")
+            LOG.info(f"There was an error when obtaining your access token {pformat(respsonse.text)}")
             raise e
         
     def get_listing_ids(self):
         "Puts all the rental ids in a queue for get_listing_info() to consume from"
+        LOG.info(f"Searching domain for properties with the following features \n  {pformat(self.house_properties)}")
         for page_number in range(1, MAX_PAGES+1):
             self.house_properties["page"] = page_number
             response = requests.post(RESIDENTIAL_ENDPOINT, headers = self.auth, json = self.house_properties)
@@ -63,7 +65,7 @@ class house_hunter_domain:
                 for obj in response.json():
                     self.id_queue.put(obj["listing"]["id"])
             except ValueError as e:
-                LOG.error(f"There was an issue retrieving the listing ids \n {response.headers}")
+                LOG.error(f"There was an issue retrieving the listing ids \n {pformat(response.headers)}")
                 raise e
 
     def get_listing_info(self):
