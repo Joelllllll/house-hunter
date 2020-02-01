@@ -33,7 +33,6 @@ class house_hunter_domain:
     class JSONReadError(Exception): pass
 
 
-
     def __init__(self, client_id, client_secret, properties_fpath):
         self.client_id = client_id
         self.client_secret = client_secret
@@ -43,8 +42,8 @@ class house_hunter_domain:
         ## Load the house properties json file
         try:
             self.house_properties = json.load(open(properties_fpath))
-        except IndexError:
-            raise self.MissingPropertiesFile("Make sure to supply a house properties json file as a command line argument")
+        except FileNotFoundError:
+            raise self.MissingPropertiesFile("Make sure to supply a house properties json file as a command line argument --properties fpath")
 
     def get_auth(self):
         "Returns the Auth needed for the requests header"
