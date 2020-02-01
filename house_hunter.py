@@ -104,6 +104,7 @@ def run(client_id, client_secret, properties_fpath):
     lats, lons, urls, prices = test.get_listing_info()
     plot_rentals(lats, lons, urls)
 
+
 if __name__ == "__main__":
     parser = ArgumentParser(description="Takes rental search parameters and returns plots map")
     parser.add_argument("--properties", action="store", help="The search parameters", type=str, dest="properties_fpath", required=True)
