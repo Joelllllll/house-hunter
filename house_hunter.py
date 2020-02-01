@@ -6,15 +6,18 @@ import os
 from pprint import pformat
 import queue
 import requests
+import webbrowser
 
 
 import folium
-import webbrowser
 
 """This script takes a json schema of house features/properties and searches the website Domain.com for properties
 and plots the geopoints on a map useing folium.
 
-This requires the user to set their domain api "CLIENTID" and "CLIENTSECRET" keys as bash ENV VARS """
+This requires the user to set their domain api "CLIENTID" and "CLIENTSECRET" keys as bash ENV VARS
+
+An example of the json parameters can be found here 
+https://developer.domain.com.au/docs/apis/pkg_agents_listings/references/listings_detailedresidentialsearch"""
 
 LOG = logging.getLogger("house_hunter")
 logging.basicConfig(level = logging.INFO)
@@ -26,7 +29,7 @@ LISTINGS_ENDPOINT = "https://api.domain.com.au/v1/listings/"
 
 ## Maximum number of pages to paginate through
 MAX_PAGES = 10
-MAP_FILE = "index.html"
+GRAPH_FILE = "index.html"
 
 class house_hunter_domain:
     class MissingPropertiesFile(Exception): pass
@@ -59,7 +62,7 @@ class house_hunter_domain:
             raise self.JSONReadError(f"There was an error when obtaining your access token {pformat(respsonse.text)}")
         
     def consume_listing_ids(self):
-        "Puts all the rental ids in a queue for consume_and_create_map() to consume from"
+        "Puts all the rental ids in a queue for graph() to consume from"
         LOG.info(f"Searching domain for properties with the following features \n  {pformat(self.house_properties)}")
         for page_number in range(1, MAX_PAGES+1):
             self.house_properties["page"] = page_number
@@ -75,22 +78,20 @@ class house_hunter_domain:
         "Grabs rental ids from the id_queue and gets the rental info"
         while not self.id_queue.empty():
             data = requests.get(f"{LISTINGS_ENDPOINT}{self.id_queue.get()}", headers= self.auth).json()
-            add_to_graph(m, data["geoLocation"]["latitude"], data["geoLocation"]["longitude"], data["seoUrl"])
+            add_point_to_graph(m, data["geoLocation"]["latitude"], data["geoLocation"]["longitude"], data["seoUrl"])
 
         return m
 
 
-def add_to_graph(graph, lat, lon, popup):
+def add_point_to_graph(graph, lat, lon, popup):
     "Adds a single point to a given folium graph"
     folium.Marker([lat, lon], popup=popup).add_to(graph)
-    graph.save(graph_FILE)
+    graph.save(GRAPH_FILE)
 
 def view_graph(graph):
     webbrowser.open("file://" + os.path.realpath(graph))
-    LOG.info(f"Cleaning up file {graph}")
-    os.remove(graph)
-
-
+    #LOG.info(f"Cleaning up file {graph}")
+    #os.remove(graph)
 
 
 def run(client_id, client_secret, properties_fpath):
