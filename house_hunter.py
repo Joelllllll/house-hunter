@@ -28,13 +28,30 @@ RESIDENTIAL_ENDPOINT = "https://api.domain.com.au/v1/listings/residential/_searc
 LISTINGS_ENDPOINT = "https://api.domain.com.au/v1/listings/"
 
 ## Maximum number of pages to paginate through
-MAX_PAGES = 10
+MAX_PAGES = 2
 
 ## Map Settings
 GRAPH_FILENAME = "index.html"
 BBOX_MAX_LAT = -37.8092
 BBOX_MAX_LON = 145.0605
 MIN_ZOOM = 12
+
+
+## If you want to plot extra locations like work, gym etc enter the details into the myplaces array and use the --myplaces flag
+
+MYPLACES = [
+    {"id": "work",
+    "lat": -37.864300,
+    "lon": 144.984600,
+    "colour": "red"
+    },
+    {"id": "gym; lol jks",
+        "lat": -37.763300,
+        "lon": 144.981600,
+        "colour": "purple"
+    }
+]
+
 
 class house_hunter_domain:
     class MissingPropertiesFile(Exception): pass
@@ -68,6 +85,7 @@ class house_hunter_domain:
         
     def consume_listing_ids(self):
         "Puts all the rental ids in a queue for graph() to consume from"
+        LOG.info("Attempting to obtain rental ids")
         LOG.info(f"Searching domain for properties with the following features \n  {pformat(self.house_properties)}")
         for page_number in range(1, MAX_PAGES+1):
             self.house_properties["page"] = page_number
@@ -75,8 +93,9 @@ class house_hunter_domain:
             try:
                 for obj in response.json():
                     self.id_queue.put(obj["listing"]["id"])
-            except ValueError:
-                raise self.JSONReadError(f"There was an issue retrieving the listing ids \n {pformat(response.headers)}")
+            except (ValueError, TypeError):
+                raise self.JSONReadError(f"There was an issue retrieving the listing ids \n {pformat(response.headers)} \n {pformat(response.content)}")
+
 
     def consume_and_create_graph(self):
         ## Setup the graph
@@ -89,13 +108,11 @@ class house_hunter_domain:
         return m
 
 
-
 ## Iv'e re-written this part like 5 different times now, I'm not sure what the best way is to make the transision from pulling down the data to graphing it.
 
-
-def add_point_to_graph(graph, lat, lon, popup):
+def add_point_to_graph(graph, lat, lon, popup, colour="blue"):
         "Adds a single point to a given folium graph"
-        folium.Marker([lat, lon], popup=popup).add_to(graph)
+        folium.Marker([lat, lon], popup=popup, icon=folium.Icon(color=colour)).add_to(graph)
         graph.save(GRAPH_FILENAME) 
 
 def view_graph(graph_name):
@@ -106,17 +123,21 @@ def view_graph(graph_name):
 
 def run(client_id, client_secret, properties_fpath):
     test = house_hunter_domain(client_id, client_secret, properties_fpath)
-    LOG.info("Attempting to obtain rental ids")
     test.consume_listing_ids()
     ## Get the map object
     graph = test.consume_and_create_graph()
+    ## Add locations in the MYPLACES array
+    if args.myplaces:
+        for i in MYPLACES:
+            add_point_to_graph(graph, i["lat"], i["lon"], i["id"], i["colour"])
     if graph:
         view_graph(GRAPH_FILENAME)
 
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="Takes rental search parameters and returns plots map")
-    parser.add_argument("--properties", action="store", help="The search parameters", type=str, dest="properties_fpath", required=True)
+    parser.add_argument("--properties", action="store",      help="The search parameters", type=str,                   dest="properties_fpath", required=True)
+    parser.add_argument("--myplaces",   action="store_true", help="Flag for plotting locations in the MyPlaces array", dest="myplaces")
     args = parser.parse_args()
 
     run(os.getenv("CLIENTID"), os.getenv("CLIENTSECRET"), args.properties_fpath)
