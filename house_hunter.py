@@ -129,10 +129,10 @@ def run(client_id, client_secret, properties_fpath):
     ## Get the map object
     graph = test.consume_and_create_graph()
     ## Add locations in the MYPLACES array
-    if MYPLACES:
-        for i in MYPLACES:
-            add_point_to_graph(graph, i["lat"], i["lon"], i["id"], i["colour"])
     if graph:
+        if MYPLACES:
+            for i in MYPLACES:
+                add_point_to_graph(graph, i["lat"], i["lon"], i["id"], i["colour"])
         view_graph(GRAPH_FILENAME)
 
 
