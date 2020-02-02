@@ -89,6 +89,10 @@ class house_hunter_domain:
         return m
 
 
+
+## Iv'e re-written this part like 5 different times now, I'm not sure what the best way is to make the transision from pulling down the data to graphing it.
+
+
 def add_point_to_graph(graph, lat, lon, popup):
         "Adds a single point to a given folium graph"
         folium.Marker([lat, lon], popup=popup).add_to(graph)
