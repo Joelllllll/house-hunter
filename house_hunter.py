@@ -16,6 +16,8 @@ and plots the geopoints on a map useing folium.
 
 This requires the user to set their domain api "CLIENTID" and "CLIENTSECRET" keys as bash ENV VARS
 
+It also allows you to enter your own co-ordinates for your own places of interest
+
 An example of the json parameters can be found here 
 https://developer.domain.com.au/docs/apis/pkg_agents_listings/references/listings_detailedresidentialsearch"""
 
@@ -36,16 +38,15 @@ BBOX_MAX_LAT = -37.8092
 BBOX_MAX_LON = 145.0605
 MIN_ZOOM = 12
 
-
-## If you want to plot extra locations like work, gym etc enter the details into the myplaces array and use the --myplaces flag
+## If you want to plot extra locations like work, gym etc enter the details into the myplaces array
 
 MYPLACES = [
-    {"id": "work",
+    {"id": "Work",
     "lat": -37.864300,
     "lon": 144.984600,
     "colour": "red"
     },
-    {"id": "gym; lol jks",
+    {"id": "Gym; lol jks",
         "lat": -37.763300,
         "lon": 144.981600,
         "colour": "purple"
@@ -110,6 +111,7 @@ class house_hunter_domain:
 
 ## Iv'e re-written this part like 5 different times now, I'm not sure what the best way is to make the transision from pulling down the data to graphing it.
 
+## TODO: Cleaning this function to take data instead of lat and lon seperately
 def add_point_to_graph(graph, lat, lon, popup, colour="blue"):
         "Adds a single point to a given folium graph"
         folium.Marker([lat, lon], popup=popup, icon=folium.Icon(color=colour)).add_to(graph)
@@ -127,7 +129,7 @@ def run(client_id, client_secret, properties_fpath):
     ## Get the map object
     graph = test.consume_and_create_graph()
     ## Add locations in the MYPLACES array
-    if args.myplaces:
+    if MYPLACES:
         for i in MYPLACES:
             add_point_to_graph(graph, i["lat"], i["lon"], i["id"], i["colour"])
     if graph:
@@ -136,8 +138,7 @@ def run(client_id, client_secret, properties_fpath):
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="Takes rental search parameters and returns plots map")
-    parser.add_argument("--properties", action="store",      help="The search parameters", type=str,                   dest="properties_fpath", required=True)
-    parser.add_argument("--myplaces",   action="store_true", help="Flag for plotting locations in the MyPlaces array", dest="myplaces")
+    parser.add_argument("--properties", action="store", help="The search parameters", type=str, dest="properties_fpath", required=True)
     args = parser.parse_args()
 
     run(os.getenv("CLIENTID"), os.getenv("CLIENTSECRET"), args.properties_fpath)
