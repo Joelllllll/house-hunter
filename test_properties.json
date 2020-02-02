@@ -10,7 +10,7 @@
     "minBedrooms": 1,
     "minBathrooms": 1,
     "page": 1,
-    "maxPrice": 300,  
+    "maxPrice": 350,  
     "locations": [
         {
           "state": "VIC",

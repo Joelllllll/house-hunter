@@ -29,7 +29,12 @@ LISTINGS_ENDPOINT = "https://api.domain.com.au/v1/listings/"
 
 ## Maximum number of pages to paginate through
 MAX_PAGES = 10
-GRAPH_FILE = "index.html"
+
+## Map Settings
+GRAPH_FILENAME = "index.html"
+BBOX_MAX_LAT = -37.8092
+BBOX_MAX_LON = 145.0605
+MIN_ZOOM = 12
 
 class house_hunter_domain:
     class MissingPropertiesFile(Exception): pass
@@ -74,24 +79,25 @@ class house_hunter_domain:
                 raise self.JSONReadError(f"There was an issue retrieving the listing ids \n {pformat(response.headers)}")
 
     def consume_and_create_graph(self):
-        m = folium.Map([max(lats), max(lons)])
+        ## Setup the graph
+        m = folium.Map([BBOX_MAX_LAT, BBOX_MAX_LON], min_zoom=MIN_ZOOM)
         "Grabs rental ids from the id_queue and gets the rental info"
+        ## As we consume from the queue we add the datapoints to the graph
         while not self.id_queue.empty():
             data = requests.get(f"{LISTINGS_ENDPOINT}{self.id_queue.get()}", headers= self.auth).json()
             add_point_to_graph(m, data["geoLocation"]["latitude"], data["geoLocation"]["longitude"], data["seoUrl"])
-
         return m
 
 
 def add_point_to_graph(graph, lat, lon, popup):
-    "Adds a single point to a given folium graph"
-    folium.Marker([lat, lon], popup=popup).add_to(graph)
-    graph.save(GRAPH_FILE)
+        "Adds a single point to a given folium graph"
+        folium.Marker([lat, lon], popup=popup).add_to(graph)
+        graph.save(GRAPH_FILENAME) 
 
-def view_graph(graph):
-    webbrowser.open("file://" + os.path.realpath(graph))
-    #LOG.info(f"Cleaning up file {graph}")
-    #os.remove(graph)
+def view_graph(graph_name):
+        webbrowser.open("file://" + os.path.realpath(graph_name))
+        #LOG.info(f"Cleaning up file {graph_name}")
+        #os.remove(graph_name)
 
 
 def run(client_id, client_secret, properties_fpath):
@@ -101,7 +107,7 @@ def run(client_id, client_secret, properties_fpath):
     ## Get the map object
     graph = test.consume_and_create_graph()
     if graph:
-        view_graph(graph)
+        view_graph(GRAPH_FILENAME)
 
 
 if __name__ == "__main__":
